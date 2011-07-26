@@ -13,9 +13,11 @@ module CouchCloner
    end
   
   def clone!(&block)
+    has_block = !block.nil?
     block ||= Proc.new {}
     next_id = database.server.next_uuid 
     copy next_id
-    self.class.get(next_id).tap(&block).tap {|d| d.save}
+    doc = self.class.get(next_id)
+    has_block ? doc.tap(&block).tap {|d| d.save} : doc
   end
 end

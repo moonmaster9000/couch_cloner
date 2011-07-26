@@ -20,9 +20,9 @@ Feature: Clone
     Given a published document that includes CouchCloner
     When I call the "<method>" method on the instance
     Then I should receive a new instance with all of the properties copied from the original instance
-    Then my new instance should have <num_versions> versions
+    And  my new instance should have <num_versions> versions
 
     Examples:
       |method|num_versions|
-      |clone!|2|
+      |clone!|1|
       |clone|0|
