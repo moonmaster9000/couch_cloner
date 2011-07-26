@@ -2,6 +2,7 @@ $LOAD_PATH.unshift "./lib"
 
 require 'couch_cloner'
 require 'couchrest_model_config'
+require 'couch_publish'
 
 CouchRest::Model::Config.edit do
   database do
