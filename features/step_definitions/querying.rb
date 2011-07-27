@@ -71,3 +71,31 @@ end
 Then /^I should receive nil$/ do
   @result.should be(nil)
 end
+
+Given /^1 QueryModel document with clone_id "([^"]*)" scheduled a week ago$/ do |clone_id| 
+  @week_old = QueryModel.create :start => 1.week.ago, :clone_id => clone_id
+end
+
+Given /^1 QueryModel document with clone_id "([^"]*)" scheduled a day ago$/ do |clone_id|
+  @active = QueryModel.create :start => 1.day.ago, :clone_id => clone_id
+end
+
+Then /^the first should be my QueryModel document with clone_id "([^"]*)" scheduled a day ago$/ do |clone_id|
+  @result.first.id.should == @active.id
+end
+
+Then /^that should be followed by my (\d+) QueryModel documents with clone_id "([^"]*)" scheduled in the future$/ do |num, clone_id|
+  @result[1..num.to_i].collect(&:start).all? {|s| s > Time.now }.should be(true)
+end
+
+Then /^I should not receive my QueryModel document with clone_id "([^"]*)" scheduled a week ago$/ do |arg1|
+  @result.collect(&:id).any? {|id| id == @week_old.id}.should be(false)
+end
+
+Then /^I should not receive any QueryModel documents without clone_id "([^"]*)"$/ do |clone_id|
+  @result[1..-1].collect(&:clone_id).all? {|c| c == clone_id}.should be(true)
+end
+
+Then /^that should be followed by my (\d+) QueryModel documents that have no start time$/ do |arg1|
+  @result[3..-1].collect(&:start).all? {|t| t == nil}.should be(true)
+end

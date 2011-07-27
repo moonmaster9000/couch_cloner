@@ -32,6 +32,10 @@ module CouchCloner
         result ? result['value'] : 0
       end
 
+      def active_and_future_clones_by_clone_id(clone_id)
+        [active_by_clone_id(clone_id)] + by_clone_id_and_start(:startkey => [clone_id, Time.now + 1.second])
+      end
+
       def by_clone_id_and_start(*args)
         clone_id, options = parse_clone_id_and_start_arguments *args
 

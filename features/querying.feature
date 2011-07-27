@@ -50,3 +50,20 @@ Feature: Querying Clones
     
     When I call "QueryModel.active_by_clone_id 'unknown'"
       Then I should receive nil
+
+  @focus
+  Scenario: Retrieving clones scheduled now into the future (.active_and_future_clones_by_clone_id)
+    Given 1 QueryModel document with clone_id "clone_id_1" scheduled a week ago
+      And 1 QueryModel document with clone_id "clone_id_1" scheduled a day ago
+      And 2 QueryModel documents with clone_id "clone_id_1" scheduled in the future
+      And 5 QueryModel document clones with clone_id "clone_id_1"
+      And 9 QueryModel documents with clone_id "clone_id_2" scheduled in the future
+    
+    When I call "QueryModel.active_and_future_clones_by_clone_id 'clone_id_1'"
+      Then the first should be my QueryModel document with clone_id "clone_id_1" scheduled a day ago
+      And that should be followed by my 2 QueryModel documents with clone_id "clone_id_1" scheduled in the future
+      And that should be followed by my 5 QueryModel documents that have no start time
+      And I should not receive my QueryModel document with clone_id "clone_id_1" scheduled a week ago
+      And I should not receive any QueryModel documents without clone_id "clone_id_1"
+
+
