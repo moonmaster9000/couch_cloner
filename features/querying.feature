@@ -85,7 +85,6 @@ Feature: Querying Clones
     When I call "QueryModel.past_clones_by_clone_id 'clone_id_1'"
       Then I should receive only my 2 QueryModel documents with clone_id "clone_id_1" scheduled over a week ago
 
-  @focus
   Scenario: Counting past clones (.past_clones_by_clone_id)
     Given 2 QueryModel documents with clone_id "clone_id_1" scheduled over a week ago
       And 1 QueryModel document with clone_id "clone_id_1" scheduled a day ago
@@ -96,7 +95,33 @@ Feature: Querying Clones
     
     When I call "QueryModel.count_past_clones_by_clone_id 'clone_id_1'"
       Then I should receive 2
+
     When I call "QueryModel.count_past_clones_by_clone_id 'clone_id_2'"
       Then I should receive 3
+
     When I call "QueryModel.count_past_clones_by_clone_id 'unknown'"
       Then I should receive 0
+
+  @focus
+  Scenario: Retrieving the list of currently used clone_ids (.clone_ids)
+    Given I have QueryModel documents with clone_id "a"
+      And I have QueryModel documents with clone_id "b"
+      And I have QueryModel documents with clone_id "c"
+
+    When   I call "QueryModel.clone_ids" 
+      Then I should receive an array "['a', 'b', 'c']"
+
+    When   I call "QueryModel.clone_ids :limit => 2"
+      Then I should receive an array "['a', 'b']"
+
+    When   I call "QueryModel.clone_ids :startkey => 'b'"
+      Then I should receive an array "['b', 'c']"
+
+  @focus
+  Scenario: Retrieving the list of currently used clone_ids (.clone_ids)
+    Given I have 2 QueryModel documents with clone_id "a"
+      And I have 3 QueryModel documents with clone_id "b"
+      And I have 4 QueryModel documents with clone_id "c"
+
+    When   I call "QueryModel.count_clone_ids" 
+      Then I should receive 3

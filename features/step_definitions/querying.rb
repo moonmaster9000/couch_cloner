@@ -108,3 +108,15 @@ end
 Then /^I should receive only my (\d+) QueryModel documents with clone_id "([^"]*)" scheduled over a week ago$/ do |arg1, arg2|
   @result.collect(&:id).sort.should == @weeks_old.collect(&:id).sort
 end
+
+Given /^I have QueryModel documents with clone_id "([^"]*)"$/ do |clone_id|
+  2.times { QueryModel.create :clone_id => clone_id }
+end
+
+Then /^I should receive an array "([^"]*)"$/ do |array|
+  eval(array).should == @result
+end
+
+Given /^I have (\d+) QueryModel documents with clone_id "([^"]*)"$/ do |num, clone_id|
+  num.to_i.times { QueryModel.create :clone_id => clone_id }
+end

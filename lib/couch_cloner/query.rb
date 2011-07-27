@@ -22,6 +22,15 @@ module CouchCloner
     end
 
     module ClassMethods
+      def clone_ids(options={})
+        by_clone_id(options.merge(:reduce => true, :group => true))['rows'].collect {|result| result['key']}
+      end
+      
+      #TODO: is there a way to get a count on a :group :reduce query without returning the actual results?
+      def count_clone_ids(options={})
+        clone_ids(options).count
+      end
+
       def active_by_clone_id(clone_id)
         result = self.by_clone_id_and_start(:startkey => [clone_id, Time.now], :descending => true, :limit => 1).first
         result && result.clone_id == clone_id ? result : nil
