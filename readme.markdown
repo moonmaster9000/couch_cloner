@@ -108,7 +108,9 @@ You can pass off all of the usual map/reduce options to this view:
 
 If you'd like to retrieve only a subset of this view, you can use the `:key` map/reduce option. For example, suppose we'd like to see all clones scheduled to start after now:
 
-    HtmlSnippet.by_clone_id_and_start :startkey => ["some_clone_id", Time.now], :endkey => ["some_clone_id", {:end => nil}]
+    HtmlSnippet.by_clone_id_and_start :startkey => ["some_clone_id", Time.now]
+
+The `:endkey` will be automatically defaulted to `["some_clone_id", {:end => nil}]`
 
 Lastly, you can find the total number of clones with the same `clone_id` by calling the `count_by_clone_id` class method on your model:
 
@@ -116,7 +118,9 @@ Lastly, you can find the total number of clones with the same `clone_id` by call
 
 If you wanted to count only a subset of your clones based on their `start` time, you can use `count_by_clone_id_and_start`:
 
-    HtmlSnippet.count_by_clone_id_and_start :startkey => ["some_clone_id", Time.now], :endkey => ["some_clone_id", {:end => nil}]
+    HtmlSnippet.count_by_clone_id_and_start :startkey => ["some_clone_id", Time.now]
+
+Again, the `:endkey` will be automatically defaulted to `["some_clone_id", {:end => nil}]`
 
 
 ## Retrieving the active clone by clone_id (.active_by_clone_id)

@@ -43,6 +43,7 @@ Given /^several QueryModel documents with clone_id "([^"]*)" without a start tim
 end
 
 Then /^they should be ordered by their `start` property$/ do
+  @result.length.should == 4
   @result[0].id.should == @past.id
   @result[1].id.should == @future.id
 end

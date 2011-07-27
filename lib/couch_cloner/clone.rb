@@ -2,8 +2,8 @@ module CouchCloner
   module Clone
     def self.included(base)
       base.property :clone_id
-      base.send :include, InstanceMethods
-      base.extend ClassMethods
+      base.send     :include, InstanceMethods
+      base.extend   ClassMethods
 
       base.view_by :clone_id, :map => "
         function(doc){
@@ -40,9 +40,17 @@ module CouchCloner
           raise ArgumentError, "wrong number of arguments"
         end
         
-        options[:startkey] ||= [clone_id, nil]
-        options[:endkey]   ||= [clone_id, {:end => nil}]
+        unless options[:key]
+          options[:startkey] ||= [clone_id, nil]
+          options[:endkey]   ||= [clone_id, {:end => nil}]
+        end
+
         by_clone_id_and_start_time options
+      end
+      
+      def count_by_clone_id_and_start(options={})
+        result = by_clone_id_and_start(options.merge(:reduce => true))['rows'].first
+        result ? result['value'] : 0
       end
     end
 
