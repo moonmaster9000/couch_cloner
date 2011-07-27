@@ -38,8 +38,15 @@ Feature: Querying Clones
   @focus
   Scenario: Retrieving the active clone within a clone_id group (.active_by_clone_id) 
     Given 1 QueryModel document with clone_id "clone_id_1" scheduled in the past
-    And   2 QueryModel documents with clone_id "clone_id_1" scheduled in the future
-    And   5 QueryModel document clones with clone_id "clone_id_1"
-    And   9 QueryModel documents with clone_id "clone_id_2" scheduled in the past
+      And 2 QueryModel documents with clone_id "clone_id_1" scheduled in the future
+      And 5 QueryModel document clones with clone_id "clone_id_1"
+      And 9 QueryModel documents with clone_id "clone_id_2" scheduled in the future
+    
     When I call "QueryModel.active_by_clone_id 'clone_id_1'"
-    Then I should receive the QueryModel document with clone_id "clone_id_1" scheduled in the past
+      Then I should receive the QueryModel document with clone_id "clone_id_1" scheduled in the past
+    
+    When I call "QueryModel.active_by_clone_id 'clone_id_2'"
+      Then I should receive nil
+    
+    When I call "QueryModel.active_by_clone_id 'unknown'"
+      Then I should receive nil

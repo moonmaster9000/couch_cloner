@@ -7,7 +7,6 @@ Feature: Clone
     When I include CouchCloner into a document model
     Then a "clone_id" property should be created
 
-  @focus
   Scenario: Can't clone without a clone_id
     Given an instance of a document model that includes CouchCloner but does not have a clone_id
     Then I should not be able to clone that instance

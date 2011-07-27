@@ -67,3 +67,7 @@ Then /^I should receive the QueryModel document with clone_id "([^"]*)" schedule
   @result.should_not be(nil)
   @result.id.should == @active.id
 end
+
+Then /^I should receive nil$/ do
+  @result.should be(nil)
+end
