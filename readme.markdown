@@ -159,6 +159,17 @@ We also provide a method for counting the number of active and future clones in 
     HtmlSnippet.count_active_and_future_clones_by_clone_id "some_clone_id"
 
 
+## Retrieving past clones (.past_clones_by_clone_id)
+
+You might find it useful to retrieve only the clones from the past (this excludes the currently active clone, though it's likely that clone is scheduled in the past). You can use the `past_clones_by_clone_id` method:
+
+    HtmlSnippet.past_clones_by_clone_id "some_clone_id"
+
+You can also count the number of past clones via the `count_past_clones_by_clone_id`:
+    
+    HtmlSnippet.count_past_clones_by_clone_id "some_clone_id"
+
+
 ## Retreiving the list of currently used clone_ids (.clone_ids)
 
 You can retrieve an array of all of the `clone_id`'s in use by calling the `clone_ids` method on your model:

@@ -35,7 +35,6 @@ Feature: Querying Clones
     When I call "QueryModel.count_by_clone_id_and_start :startkey => ['clone_id_1', Time.now]"
     Then I should receive 3
 
-  @focus
   Scenario: Retrieving the active clone within a clone_id group (.active_by_clone_id) 
     Given 1 QueryModel document with clone_id "clone_id_1" scheduled in the past
       And 2 QueryModel documents with clone_id "clone_id_1" scheduled in the future
@@ -51,7 +50,6 @@ Feature: Querying Clones
     When I call "QueryModel.active_by_clone_id 'unknown'"
       Then I should receive nil
 
-  @focus
   Scenario: Retrieving clones scheduled now into the future (.active_and_future_clones_by_clone_id)
     Given 1 QueryModel document with clone_id "clone_id_1" scheduled a week ago
       And 1 QueryModel document with clone_id "clone_id_1" scheduled a day ago
@@ -66,4 +64,39 @@ Feature: Querying Clones
       And I should not receive my QueryModel document with clone_id "clone_id_1" scheduled a week ago
       And I should not receive any QueryModel documents without clone_id "clone_id_1"
 
+  Scenario: Counting clones scheduled now into the future (.count_active_and_future_clones_by_clone_id)
+    Given 1 QueryModel document with clone_id "clone_id_1" scheduled a week ago
+      And 1 QueryModel document with clone_id "clone_id_1" scheduled a day ago
+      And 2 QueryModel documents with clone_id "clone_id_1" scheduled in the future
+      And 5 QueryModel document clones with clone_id "clone_id_1"
+      And 9 QueryModel documents with clone_id "clone_id_2" scheduled in the future
+    
+    When I call "QueryModel.count_active_and_future_clones_by_clone_id 'clone_id_1'"
+      Then I should receive 8
 
+  Scenario: Retrieving past clones (.past_clones_by_clone_id)
+    Given 2 QueryModel documents with clone_id "clone_id_1" scheduled over a week ago
+      And 1 QueryModel document with clone_id "clone_id_1" scheduled a day ago
+      And 2 QueryModel documents with clone_id "clone_id_1" scheduled in the future
+      And 5 QueryModel document clones with clone_id "clone_id_1"
+      And 9 QueryModel documents with clone_id "clone_id_2" scheduled in the future
+      And 4 QueryModel documents with clone_id "clone_id_2" scheduled in the past
+    
+    When I call "QueryModel.past_clones_by_clone_id 'clone_id_1'"
+      Then I should receive only my 2 QueryModel documents with clone_id "clone_id_1" scheduled over a week ago
+
+  @focus
+  Scenario: Counting past clones (.past_clones_by_clone_id)
+    Given 2 QueryModel documents with clone_id "clone_id_1" scheduled over a week ago
+      And 1 QueryModel document with clone_id "clone_id_1" scheduled a day ago
+      And 2 QueryModel documents with clone_id "clone_id_1" scheduled in the future
+      And 5 QueryModel document clones with clone_id "clone_id_1"
+      And 9 QueryModel documents with clone_id "clone_id_2" scheduled in the future
+      And 4 QueryModel documents with clone_id "clone_id_2" scheduled in the past
+    
+    When I call "QueryModel.count_past_clones_by_clone_id 'clone_id_1'"
+      Then I should receive 2
+    When I call "QueryModel.count_past_clones_by_clone_id 'clone_id_2'"
+      Then I should receive 3
+    When I call "QueryModel.count_past_clones_by_clone_id 'unknown'"
+      Then I should receive 0

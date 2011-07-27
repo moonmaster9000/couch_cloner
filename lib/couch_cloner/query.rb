@@ -32,6 +32,23 @@ module CouchCloner
         result ? result['value'] : 0
       end
 
+      def count_active_and_future_clones_by_clone_id(clone_id)
+        future_count = count_by_clone_id_and_start(:startkey => [clone_id, Time.now + 1.second])
+        active_count = active_by_clone_id(clone_id) ? 1 : 0
+        active_count + future_count
+      end
+      
+      def count_past_clones_by_clone_id(clone_id)
+        result = by_clone_id_and_start(:startkey => [clone_id, Time.now], :descending => true, :reduce => true)['rows'].first
+        result = result ? (result['value'] - 1) : 0
+        result = 0 if result < 0
+        result
+      end
+
+      def past_clones_by_clone_id(clone_id)
+        by_clone_id_and_start(:startkey => [clone_id, Time.now], :descending => true)[1..-1]
+      end
+
       def active_and_future_clones_by_clone_id(clone_id)
         [active_by_clone_id(clone_id)] + by_clone_id_and_start(:startkey => [clone_id, Time.now + 1.second])
       end

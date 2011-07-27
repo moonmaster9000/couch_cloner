@@ -99,3 +99,12 @@ end
 Then /^that should be followed by my (\d+) QueryModel documents that have no start time$/ do |arg1|
   @result[3..-1].collect(&:start).all? {|t| t == nil}.should be(true)
 end
+
+Given /^(\d+) QueryModel documents with clone_id "([^"]*)" scheduled over a week ago$/ do |num, clone_id|
+  @weeks_old = []
+  num.to_i.downto(1) {|i| @weeks_old << QueryModel.create(:clone_id => clone_id, :start => i.weeks.ago) }
+end
+
+Then /^I should receive only my (\d+) QueryModel documents with clone_id "([^"]*)" scheduled over a week ago$/ do |arg1, arg2|
+  @result.collect(&:id).sort.should == @weeks_old.collect(&:id).sort
+end
