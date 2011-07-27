@@ -22,6 +22,11 @@ module CouchCloner
     end
 
     module ClassMethods
+      def last_future_clone_by_clone_id(clone_id)
+        result = by_clone_id_and_start(:startkey => [clone_id, {:end => nil}], :descending => true, :limit => 1).first
+        result && result.clone_id == clone_id ? result : nil
+      end
+      
       def clone_ids(options={})
         by_clone_id(options.merge(:reduce => true, :group => true))['rows'].collect {|result| result['key']}
       end

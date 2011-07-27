@@ -120,3 +120,31 @@ end
 Given /^I have (\d+) QueryModel documents with clone_id "([^"]*)"$/ do |num, clone_id|
   num.to_i.times { QueryModel.create :clone_id => clone_id }
 end
+
+Given /^several QueryModel documents with clone_id "([^"]*)" scheduled in the past and in the future$/ do |clone_id|
+  3.downto(1) {|i| QueryModel.create :clone_id => clone_id, :start => i.days.ago }
+  3.downto(1) {|i| QueryModel.create :clone_id => clone_id, :start => i.days.from_now }
+  @farthest_scheduled = QueryModel.create :clone_id => clone_id, :start => 1.year.from_now
+end
+
+Given /^several QueryModel documents with clone_id "([^"]*)" scheduled in the past and in the future and without a start time$/ do |clone_id|
+  3.downto(1) {|i| QueryModel.create :clone_id => clone_id, :start => i.days.ago }
+  3.downto(1) {|i| QueryModel.create :clone_id => clone_id, :start => i.days.from_now }
+  2.times { QueryModel.create :clone_id => clone_id }
+end
+
+Then /^I should receive the clone scheduled farthest in the future$/ do
+  @result.id.should == @farthest_scheduled.id
+end
+
+When /^I create several QueryModel documents with clone_id "([^"]*)" and without a start time$/ do |clone_id|
+  Timecop.freeze(1.day.from_now) do
+    @farthest_created = QueryModel.create :clone_id => clone_id
+  end
+
+  QueryModel.create :clone_id => clone_id
+end
+
+Then /^I should receive the clone created last that has no start time$/ do
+  @result.id.should == @farthest_created.id
+end

@@ -102,7 +102,6 @@ Feature: Querying Clones
     When I call "QueryModel.count_past_clones_by_clone_id 'unknown'"
       Then I should receive 0
 
-  @focus
   Scenario: Retrieving the list of currently used clone_ids (.clone_ids)
     Given I have QueryModel documents with clone_id "a"
       And I have QueryModel documents with clone_id "b"
@@ -117,7 +116,6 @@ Feature: Querying Clones
     When   I call "QueryModel.clone_ids :startkey => 'b'"
       Then I should receive an array "['b', 'c']"
 
-  @focus
   Scenario: Retrieving the list of currently used clone_ids (.clone_ids)
     Given I have 2 QueryModel documents with clone_id "a"
       And I have 3 QueryModel documents with clone_id "b"
@@ -125,3 +123,18 @@ Feature: Querying Clones
 
     When   I call "QueryModel.count_clone_ids" 
       Then I should receive 3
+
+  @focus
+  Scenario: Retrieve the clone created farthest in the future for a clone_id group (.last_future_clone_by_clone_id)
+    Given several QueryModel documents with clone_id "clone_id_1" scheduled in the past and in the future 
+      And several QueryModel documents with clone_id "clone_id_2" scheduled in the past and in the future and without a start time 
+    
+    When I call "QueryModel.last_future_clone_by_clone_id 'clone_id_1'"
+      Then I should receive the clone scheduled farthest in the future
+    
+    When I create several QueryModel documents with clone_id "clone_id_1" and without a start time
+    When I call "QueryModel.last_future_clone_by_clone_id 'clone_id_1'"
+      Then I should receive the clone created last that has no start time
+
+    When I call "QueryModel.last_future_clone_by_clone_id 'unknown'"
+      Then I should receive nil
