@@ -24,12 +24,39 @@ module CouchCloner
     end
 
     module ClassMethods
+      def active_by_clone_id(clone_id)
+        result = self.by_clone_id_and_start(:startkey => [clone_id, Time.now], :descending => true, :limit => 1).first
+        result && result.clone_id == clone_id ? result : nil
+      end
+      
       def count_by_clone_id(options={})
         result = by_clone_id(options.merge(:reduce => true))['rows'].first
         result ? result['value'] : 0
       end
 
       def by_clone_id_and_start(*args)
+        clone_id, options = parse_clone_id_and_start_arguments *args
+
+        unless options[:key]
+          options[:startkey] ||= [clone_id, nil]
+          if !options[:endkey] 
+            options[:endkey] = [options[:startkey].first, nil]           if     options[:descending]
+            options[:endkey] = [options[:startkey].first, {:end => nil}] unless options[:descending]
+          end
+        end
+
+        by_clone_id_and_start_time options
+      end
+      
+      def count_by_clone_id_and_start(*args)
+        clone_id, options = parse_clone_id_and_start_arguments *args
+
+        result = by_clone_id_and_start(clone_id, options.merge(:reduce => true))['rows'].first
+        result ? result['value'] : 0
+      end
+
+      private
+      def parse_clone_id_and_start_arguments(*args)
         if args.length == 2
           clone_id = args.first
           options  = args.last
@@ -39,18 +66,8 @@ module CouchCloner
         else
           raise ArgumentError, "wrong number of arguments"
         end
-        
-        unless options[:key]
-          options[:startkey] ||= [clone_id, nil]
-          options[:endkey]   ||= [clone_id, {:end => nil}]
-        end
 
-        by_clone_id_and_start_time options
-      end
-      
-      def count_by_clone_id_and_start(options={})
-        result = by_clone_id_and_start(options.merge(:reduce => true))['rows'].first
-        result ? result['value'] : 0
+        [clone_id, options]
       end
     end
 
