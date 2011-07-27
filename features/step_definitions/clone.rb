@@ -3,10 +3,11 @@ Given /^an instance of a document model that includes CouchCloner$/ do
     class Document < CouchRest::Model::Base
       include CouchCloner
       property :title
+
     end
   end
 
-  @instance = Document.create :title => "original"
+  @instance = Document.create :title => "original", :clone_id => "original_document"
 end
 
 When /^I call the "([^"]*)" method on the instance$/ do |method|
@@ -36,7 +37,7 @@ Given /^a published document that includes CouchCloner$/ do
     end
   end
 
-  @instance = PublishableDocument.create :title => "awesome publishable document"
+  @instance = PublishableDocument.create :title => "awesome publishable document", :clone_id => "publishable_document"
   @instance.title = "awesome publishable document v2"
   @instance.publish!
 end
@@ -50,4 +51,31 @@ end
 
 Then /^my new instance should have (\d+) versions$/ do |num_versions|
   @result.versions.count.should == num_versions.to_i
+end
+
+When /^I include CouchCloner into a document model$/ do
+  unless defined? CouchClonerDocument
+    class CouchClonerDocument < CouchRest::Model::Base
+      include CouchCloner
+    end
+  end
+end
+
+Then /^a "([^"]*)" property should be created$/ do |property|
+  CouchClonerDocument.properties.collect(&:name).include?("clone_id").should be(true)
+end
+
+Given /^an instance of a document model that includes CouchCloner but does not have a clone_id$/ do
+  unless defined? NoCloneId
+    class NoCloneId < CouchRest::Model::Base
+      include CouchCloner
+    end
+  end
+
+  @instance = NoCloneId.create
+end
+
+Then /^I should not be able to clone that instance$/ do
+  proc { @instance.clone }.should raise_exception("You must specify a non-nil clone_id on your 'NoCloneId' instance before you can clone it.")
+  proc { @instance.clone!}.should raise_exception("You must specify a non-nil clone_id on your 'NoCloneId' instance before you can clone it.")
 end

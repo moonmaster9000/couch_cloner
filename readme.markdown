@@ -16,47 +16,44 @@ Simply include the module `CouchCloner` into your `CouchRest::Model::Base` docum
       include CouchCloner
     end
 
-Next, you need to define the shared identifier between all of your clones via the `clone_id` class method. Later, you'll look up clones by this identifier. In this example, we'll set the clone identifier to the label our `HtmlSnippet`:
+Setup complete.
+
+
+## Cloning (.clone/.clone!)
+
+Let's imagine we'd like to create an HtmlSnippet that appears on the home page of our website. Our model definition might look like this:
 
     class HtmlSnippet < CouchRest::Model::Base
       include CouchCloner
 
-      property :label
       property :content
 
       timestamps!
-      
-      validates_presence_of :label
-      
-      clone_id :label
     end
 
-Setup complete.
+And our snippet might look like this:
 
+    homepage = HtmlSnippet.create :clone_id => "homepage", :content => "<h1>Homepage!</h1>"
 
-## Cloning (.clone)
+OK, so that's a pretty lame bit of content, but did you notice the `clone_id`? If you're going to clone, you have to set a `clone_id` on your document first. The `clone_id` is the shared identifier between all of your clones. That's important; you'll see why in a few moments. Read on.
 
-Let's imagine we've created an HtmlSnippet that appears on the home page of our website. Your content administrators want to use your CMS to schedule clones of this content to publish on the site several days in advance. How do we clone it? 
+So now your content administrators want to use your CMS to schedule clones of this content to publish on the site several days in advance. How do we clone it? 
 
 We can create a soft clone (i.e., a new HtmlSnippet based on the original, but not yet persisted to the database) via the `clone` method:
 
-    original  = HtmlSnippet.create :content => "<h1>this is awesome</h1>", :label => "homepage_snippet"
-    
-    next      = original.clone
+    next = homepage.clone
 
-    next.content      #==> "<h1>this is awesome</h1>"
-    next.label        #==> "homepage_snippet"
+    next.content      #==> "<h1>Homepage!</h1>"
+    next.clone_id     #==> "homepage"
     next.new_record?  #==> true
 
 We can create a persisted clone with the `clone!` method:
     
-    next      = original.clone!
+    next = homepage.clone!
 
-    next.content      #==> "<h1>this is awesome</h1>"
-    next.label        #==> "homepage_snippet"
+    next.content      #==> "<h1>Homepage!</h1>"
+    next.clone_id     #==> "homepage"
     next.new_record?  #==> false
-
-    next.content = "<h1>This is even awesomer</h1>"
 
 Note that, when cloned, the `start` scheduling property of the clone is not copied. See the next section for details about how scheduling works. 
 
@@ -65,10 +62,10 @@ Note that, when cloned, the `start` scheduling property of the clone is not copi
 
 The utility of these clones is most apparent when you schedule multiple clones. The scheduling has only one constraint: each document in a clone group must have a unique date/time stamp, or `nil`.
 
-Returning to our previous example of `next` and `original` HtmlSnippet clones:
+Returning to our previous example of `next` and `homepage` HtmlSnippet clones:
 
-    original.start = Time.now.beginning_of_day
-    original.save #==> true
+    homepage.start = Time.now.beginning_of_day
+    homepage.save #==> true
 
 We've now scheduled the `original` clone to start at the beginning of today.
 
@@ -97,6 +94,8 @@ This will return all clones with that clone_id. You can pass all of the usual ma
     
     HtmlSnippet.by_clone_id :key => "some_clone_id", :limit => 10, :skip => 10 
 
+The clones will be sorted by their `start` schedule property. Clones with a `start` of `nil` or `""` will sort last, and will order by their `created_at` property. 
+
 Lastly, you can find the total number of clones with the same clone_id by calling the `count_by_clone_id` class method on your model:
 
     HtmlSnippet.count_by_clone_id :key => "some_clone_id"
@@ -106,7 +105,7 @@ Lastly, you can find the total number of clones with the same clone_id by callin
 
 Now that we've created an original clone scheduled today, and a `next` clone scheduled tomorrow, let's determine which one is currently active:
 
-    HtmlSnippet.active_by_clone_id("homepage_snippet").content #==> "<h1>this is awesome</h1>"
+    HtmlSnippet.active_by_clone_id("homepage").content #==> "<h1>this is awesome</h1>"
 
 The `active_by_clone_id` method accepts a `clone_id` (in our case a `label`), and returns either `nil` (if no currently active `HtmlSnippet` is found with that label) or the currently active `HtmlSnippet`.
 
@@ -115,11 +114,11 @@ The `active_by_clone_id` method accepts a `clone_id` (in our case a `label`), an
 
 We can get a list of the currently active and future clones by label via the `active_and_future_clones_by_clone_id` method:
 
-    HtmlSnippet.active_and_future_clones_by_clone_id("homepage_snippet")
+    HtmlSnippet.active_and_future_clones_by_clone_id("homepage")
       #==> includes both the "original" clone and the "next" clone
 
     # wait a day
-    HtmlSnippet.active_and_future_clones_by_clone_id("homepage_snippet")
+    HtmlSnippet.active_and_future_clones_by_clone_id("homepage")
       #==> includes the "next" clone, but not the "original" clone, since the "next" clone has
            now reached its start date
 
@@ -128,7 +127,7 @@ If we create a clone with a `start` of `nil`, they will show up sorted at the en
     future = next.clone! #==> remember, on clone, the `start` property is not copied
     future.start #==> nil
 
-    HtmlSnippet.active_and_future_clones_by_clone_id "homepage_snippet"
+    HtmlSnippet.active_and_future_clones_by_clone_id "homepage"
       #==> [ `next`, `future` ]
 
 If there are multiple clones with a start of `nil`, they will sort by their `created_at` timestamp.
@@ -143,9 +142,9 @@ We also provide a method for counting the number of active and future clones in 
 You can retrieve an array of all of the `clone_id`'s in use by calling the `clone_ids` method on your model:
 
     HtmlSnippet.database.recreate!
-    HtmlSnippet.create :label => "homepage"
-    HtmlSnippet.create :label => "contact_us"
-    HtmlSnippet.create :label => "news"
+    HtmlSnippet.create :clone_id => "homepage"
+    HtmlSnippet.create :clone_id => "contact_us"
+    HtmlSnippet.create :clone_id => "news"
 
     HtmlSnippet.clone_ids 
       #==> ["contact_us", "homepage", "news"]
@@ -165,18 +164,16 @@ You can also get a count of all clone_ids:
 
 If you'd like to retrieve the latest clone within a clone group, you could of course call `active_and_future_clones_by_clone_id` and then call `last` on the resulting array - however, that would be quite silly and idiotically inefficiant. So, instead, call `last_future_clone_by_clone_id`:
 
-    snippet_1 = HtmlSnippet.create :label => "snippety", :start => Time.now
-    snippet_2 = HtmlSnippet.create :label => "snippety", :start => 1000.years.from_now
+    snippet_1 = HtmlSnippet.create :clone_id => "snippety", :start => Time.now
+    snippet_2 = HtmlSnippet.create :clone_id => "snippety", :start => 1000.years.from_now
     
     HtmlSnippet.last_future_clone_by_clone_id("snippety").should == snippet_2
 
 After creating these two snippet's, calling `HtmlSnippet.last_future_clone_by_clone_id "snippety"` would return `snippet_2`. However, if we create another "snippety" snippet without a `start` date:
 
-    snippet_3 = HtmlSnippet.create :label => "snippety"
+    snippet_3 = HtmlSnippet.create :clone_id => "snippety"
 
     HtmlSnippet.last_future_clone_by_clone_id("snippety").should == snippet_3
-
-    
 
 Then calling `HtmlSnippet.last_future_clone_by_clone_id "snippety"` would return `snippet3`. Basically, you can imagine clones with a null start date or an empty string start date to have a start scheduled for `infinity + created_at`; in other words, they sort at the end of the map of clones in a clone_id group, and if there are multiple clones without a start date, then they sort by created at (still at the end of the map). 
 
