@@ -3,6 +3,47 @@ module CouchCloner
     def self.included(base)
       base.property :clone_id
       base.send :include, InstanceMethods
+      base.extend ClassMethods
+
+      base.view_by :clone_id, :map => "
+        function(doc){
+          if (doc['couchrest-type'] == '#{base}')
+            emit(doc.clone_id, null)
+        }
+      ", :reduce => "_count"
+
+      base.view_by :clone_id_and_start_time, :map => "
+        function(doc){
+          if (doc['couchrest-type'] == '#{base}' && (doc.start == null || doc.start == '')) {
+            emit([doc.clone_id, {'created_at': doc.created_at}], null)
+          } else if (doc['couchrest-type'] == '#{base}' && doc.start != null && doc.start != ''){
+            emit([doc.clone_id, doc.start], null)
+          }
+        }
+      ", :reduce => "_count"
+    end
+
+    module ClassMethods
+      def count_by_clone_id(options={})
+        result = by_clone_id(options.merge(:reduce => true))['rows'].first
+        result ? result['value'] : 0
+      end
+
+      def by_clone_id_and_start(*args)
+        if args.length == 2
+          clone_id = args.first
+          options  = args.last
+        elsif args.length == 1
+          options = args.first.kind_of?(Hash) ? args.first : {}
+          clone_id = args.first.kind_of?(Hash) ? nil : args.first
+        else
+          raise ArgumentError, "wrong number of arguments"
+        end
+        
+        options[:startkey] ||= [clone_id, nil]
+        options[:endkey]   ||= [clone_id, {:end => nil}]
+        by_clone_id_and_start_time options
+      end
     end
 
     module InstanceMethods

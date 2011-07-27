@@ -3,6 +3,7 @@ module CouchCloner
     def self.included(base)
       base.extend   ClassMethods
       base.property :start, Time
+      
       base.view_by  :clone_id_and_start, :map => "
         function(doc){
           if(doc['couchrest-type'] == '#{base}'){
@@ -10,6 +11,7 @@ module CouchCloner
           }
         }
       ", :reduce => "_count"
+
       base.validate :uniqueness_of_start_and_clone_id
     end
     

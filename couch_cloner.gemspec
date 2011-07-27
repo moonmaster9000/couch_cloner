@@ -12,7 +12,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency "couchrest_model_config"
   s.add_development_dependency "couch_publish", "~> 0.0.3"
   s.add_development_dependency "couch_visible"
+  s.add_development_dependency "timecop"
   
+  s.add_dependency             "couchrest",       "1.0.1"
   s.add_dependency             "couchrest_model", "~> 1.0.0"
   s.add_dependency             "recloner",        "~> 0.1.1"
 end

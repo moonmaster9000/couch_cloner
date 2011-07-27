@@ -94,11 +94,29 @@ This will return all clones with that clone_id. You can pass all of the usual ma
     
     HtmlSnippet.by_clone_id :key => "some_clone_id", :limit => 10, :skip => 10 
 
-The clones will be sorted by their `start` schedule property. Clones with a `start` of `nil` or `""` will sort last, and will order by their `created_at` property. 
+Clones with the same clone_id will be sorted by their `_id` (this is simply how CouchDB works). 
 
-Lastly, you can find the total number of clones with the same clone_id by calling the `count_by_clone_id` class method on your model:
+A more useful sorting option is to have the documents sorted by their `start` property. Clones with a `start` of `nil` or `""` will sort last, and will order by their `created_at` property. Thus, it's as if the clones with a `start` time are assumed to be scheduled at time `infinity + created_at`. Pretty cool, right?
+
+To get all the clones with the same `clone_id` sorted in this order, call `by_clone_id_and_start`:
+    
+    HtmlSnippet.by_clone_id_and_start "some_clone_id"
+
+You can pass off all of the usual map/reduce options to this view:
+    
+    HtmlSnippet.by_clone_id_and_start "some_clone_id", :limit => 10, :skip => 1
+
+If you'd like to retrieve only a subset of this view, you can use the `:key` map/reduce option. For example, suppose we'd like to see all clones scheduled to start after now:
+
+    HtmlSnippet.by_clone_id_and_start :startkey => ["some_clone_id", Time.now], :endkey => ["some_clone_id", {:end => nil}]
+
+Lastly, you can find the total number of clones with the same `clone_id` by calling the `count_by_clone_id` class method on your model:
 
     HtmlSnippet.count_by_clone_id :key => "some_clone_id"
+
+If you wanted to count only a subset of your clones based on their `start` time, you can use `count_by_clone_id_and_start`:
+
+    HtmlSnippet.count_by_clone_id_and_start :startkey => ["some_clone_id", Time.now], :endkey => ["some_clone_id", {:end => nil}]
 
 
 ## Retrieving the active clone by clone_id (.active_by_clone_id)

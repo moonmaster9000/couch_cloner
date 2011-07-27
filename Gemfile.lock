@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     couch_cloner (0.0.0)
+      couchrest (= 1.0.1)
       couchrest_model (~> 1.0.0)
       recloner (~> 0.1.1)
 
@@ -29,10 +30,10 @@ GEM
       memories (~> 0.3.6)
     couch_visible (0.0.2)
       couchrest_model (~> 1.0.0)
-    couchrest (1.0.2)
-      json (~> 1.5.1)
-      mime-types (~> 1.15)
-      rest-client (~> 1.6.1)
+    couchrest (1.0.1)
+      json (>= 1.4.6)
+      mime-types (>= 1.15)
+      rest-client (>= 1.5.1)
     couchrest_model (1.0.0)
       activemodel (~> 3.0.0)
       couchrest (~> 1.0.1)
@@ -85,6 +86,7 @@ GEM
     rspec-mocks (2.6.0)
     term-ansicolor (1.0.6)
     thor (0.14.6)
+    timecop (0.3.5)
     tzinfo (0.3.29)
 
 PLATFORMS
@@ -97,3 +99,4 @@ DEPENDENCIES
   couchrest_model_config
   cucumber
   rspec
+  timecop
