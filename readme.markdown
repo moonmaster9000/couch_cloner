@@ -136,34 +136,34 @@ Now that we've created an original clone scheduled today, and a `next` clone sch
 The `map_active_by_clone_id` method accepts a `clone_id` (in our case a `label`), and returns a query proxy that will return either zero or one results (zero if no currently active `HtmlSnippet` is found with that label, otherwise, one for the currently active `HtmlSnippet`).
 
 
-## Retrieving clones scheduled into the future (.map_future_clones_by_clone_id)
+## Retrieving clones scheduled into the future (.map_future_by_clone_id)
 
-We can get a list of the future clones by label via the `map_future_clones_by_clone_id` method:
+We can get a list of the future clones by label via the `map_future_by_clone_id` method:
     
     past = HtmlSnippet.create :clone_id => "homepage", :start => 1.day.ago
     next = HtmlSnippet.create :clone_id => "homepage", :start => 1.day.from_now
 
-    HtmlSnippet.map_future_clones_by_clone_id("homepage").get!
+    HtmlSnippet.map_future_by_clone_id("homepage").get!
       #==> returns the homepage snippet "next" that starts one day from now
 
 This is essentially a shortcut for:
     
     HtmlSnippet.map_by_clone_id_and_start("homepage", Time.now)
 
-If we create a clone with a `start` of `nil`, they will show up sorted at the end of `map_future_clones_by_clone_id`:
+If we create a clone with a `start` of `nil`, they will show up sorted at the end of `map_future_by_clone_id`:
 
     future = next.clone! #==> remember, on clone, the `start` property is not copied
     future.start.should == nil
     future.save
 
-    HtmlSnippet.map_future_clones_by_clone_id("homepage").get!
+    HtmlSnippet.map_future_by_clone_id("homepage").get!
       #==> would return an array consisting of the `next` clone followed by the `future` clone
 
 If there are multiple clones with a start of `nil`, they will sort by their `created_at` timestamp.
 
 We also provide a method for counting the number of active and future clones in a given clone_id group:
 
-    HtmlSnippet.count_future_clones_by_clone_id("some_clone_id").get!
+    HtmlSnippet.count_future_by_clone_id("some_clone_id").get!
 
 
 ## Retrieving past clones (.map_past_clones_by_clone_id)
