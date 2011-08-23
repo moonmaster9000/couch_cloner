@@ -166,17 +166,17 @@ We also provide a method for counting the number of active and future clones in 
     HtmlSnippet.count_future_by_clone_id("some_clone_id").get!
 
 
-## Retrieving past clones (.map_past_clones_by_clone_id)
+## Retrieving past clones (.map_past_by_clone_id)
 
-You might find it useful to retrieve only the clones scheduled in the past. You can use the `map_past_clones_by_clone_id` method:
+You might find it useful to retrieve only the clones scheduled in the past. You can use the `map_past_by_clone_id` method:
 
-    HtmlSnippet.map_past_clones_by_clone_id("some_clone_id").get!
+    HtmlSnippet.map_past_by_clone_id("some_clone_id").get!
 
 They will be ordered by their start date.
 
-You can also count the number of past clones via the `count_past_clones_by_clone_id`:
+You can also count the number of past clones via the `count_past_by_clone_id`:
     
-    HtmlSnippet.count_past_clones_by_clone_id("some_clone_id").get!
+    HtmlSnippet.count_past_by_clone_id("some_clone_id").get!
 
 
 ## Retreiving the list of currently used clone_ids (.map_clone_ids)
@@ -188,34 +188,34 @@ You can retrieve an array of all of the `clone_id`'s in use by calling the `map_
     HtmlSnippet.create :clone_id => "contact_us"
     HtmlSnippet.create :clone_id => "news"
 
-    HtmlSnippet.map_clone_ids.get! 
+    HtmlSnippet.map_clone_ids.get!['rows'].map {|row| row['key']} 
       #==> ["contact_us", "homepage", "news"]
 
 You can use all of the map/reduce options you're used to (e.g., limit/skip):
 
-    HtmlSnippet.map_clone_ids.limit(1).skip(1).get! 
+    HtmlSnippet.map_clone_ids.limit(1).skip(1).get!['rows'].map {|row| row['key']}  
       #==> ["homepage"] 
 
 You can also get a count of all clone_ids: 
 
-    HtmlSnippet.count_clone_ids 
+    HtmlSnippet.count_clone_ids! 
       #==> 3
 
 
-## Retreiving the clone created farthest in the future for a clone_id group (.map_last_future_clone_by_clone_id)
+## Retreiving the clone created farthest in the future for a clone_id group (.map_last_future_by_clone_id)
 
 If you'd like to retrieve the latest clone within a clone group, you could of course call `future_clones_by_clone_id` and then call `last` on the resulting array - however, that would be quite silly and idiotically inefficiant. So, instead, call `last_future_clone_by_clone_id`:
 
     snippet_1 = HtmlSnippet.create :clone_id => "snippety", :start => Time.now
     snippet_2 = HtmlSnippet.create :clone_id => "snippety", :start => 1000.years.from_now
     
-    HtmlSnippet.map_last_future_clone_by_clone_id("snippety").get!.first.should == snippet_2
+    HtmlSnippet.map_last_future_by_clone_id("snippety").get!.first.should == snippet_2
 
 After creating these two snippet's, calling `HtmlSnippet.last_future_clone_by_clone_id "snippety"` would return `snippet_2`. However, if we create another "snippety" snippet without a `start` date:
 
     snippet_3 = HtmlSnippet.create :clone_id => "snippety"
 
-    HtmlSnippet.map_last_future_clone_by_clone_id("snippety").get!.first.should == snippet_3
+    HtmlSnippet.map_last_future_by_clone_id("snippety").get!.first.should == snippet_3
 
 Then calling `HtmlSnippet.last_future_clone_by_clone_id "snippety"` would return `snippet3`. Basically, you can imagine clones with a null start date or an empty string start date to have a start scheduled for `infinity + created_at`; in other words, they sort at the end of the map of clones in a clone_id group, and if there are multiple clones without a start date, then they sort by created at (still at the end of the map). 
 
@@ -238,7 +238,7 @@ If you include `CouchCloner` into a gem that already includes `CouchPublish`, th
     HtmlSnippet.map_active_by_clone_id("some-clone-id").published.get!.first
     HtmlSnippet.map_by_clone_id_and_start("some_clone_id")
     HtmlSnippet.map_active_and_future_clones_by_clone_id("some-clone-id").unpublished.get!.first
-    HtmlSnippet.map_last_future_clone_by_clone_id("some-clone-id").published.get!.first
+    HtmlSnippet.map_last_future_by_clone_id("some-clone-id").published.get!.first
     HtmlSnippet.clone_ids.unpublished.get!
     HtmlSnippet.count_clone_ids.published.get!
 
@@ -262,7 +262,7 @@ If you include `CouchCloner` into a gem that already includes `CouchVisible`, th
     HtmlSnippet.map_active_by_clone_id("some-clone-id").shown.get!.first
     HtmlSnippet.map_by_clone_id_and_start("some_clone_id")
     HtmlSnippet.map_active_and_future_clones_by_clone_id("some-clone-id").hidden.get!.first
-    HtmlSnippet.map_last_future_clone_by_clone_id("some-clone-id").shown.get!.first
+    HtmlSnippet.map_last_future_by_clone_id("some-clone-id").shown.get!.first
     HtmlSnippet.clone_ids.hidden.get!
     HtmlSnippet.count_clone_ids.shown.get!
 
@@ -284,7 +284,7 @@ If you include `CouchCloner` into a gem that already includes both `CouchVisible
     HtmlSnippet.map_active_by_clone_id("some-clone-id").shown.get!.first
     HtmlSnippet.map_by_clone_id_and_start("some_clone_id")
     HtmlSnippet.map_active_and_future_clones_by_clone_id("some-clone-id").hidden.published.get!.first
-    HtmlSnippet.map_last_future_clone_by_clone_id("some-clone-id").shown.get!.first
+    HtmlSnippet.map_last_future_by_clone_id("some-clone-id").shown.get!.first
     HtmlSnippet.clone_ids.hidden.get!
     HtmlSnippet.count_clone_ids.shown.unpublished.get!
 

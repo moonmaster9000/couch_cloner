@@ -17,4 +17,5 @@ Gem::Specification.new do |s|
   s.add_dependency             "couchrest",       "1.0.1"
   s.add_dependency             "couchrest_model", "~> 1.0.0"
   s.add_dependency             "recloner",        "~> 0.1.1"
+  s.add_dependency             "couch_view",      "~> 0.0.3"
 end

@@ -1,6 +1,7 @@
 require 'couchrest_model'
-require 'recloner'
+require 'couch_view'
 require 'couch_cloner/couch_cloner'
 require 'couch_cloner/clone'
 require 'couch_cloner/scheduling'
 require 'couch_cloner/query'
+require 'couch_cloner/maps/by_clone_id_and_start_time'

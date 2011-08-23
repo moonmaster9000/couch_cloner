@@ -2,107 +2,76 @@ module CouchCloner
   module Query
     def self.included(base)
       base.extend ClassMethods
-
-      base.view_by :clone_id, :map => "
-        function(doc){
-          if (doc['couchrest-type'] == '#{base}')
-            emit(doc.clone_id, null)
-        }
-      ", :reduce => "_count"
-
-      base.view_by :clone_id_and_start_time, :map => "
-        function(doc){
-          if (doc['couchrest-type'] == '#{base}' && (doc.start == null || doc.start == '')) {
-            emit([doc.clone_id, {'created_at': doc.created_at}], null)
-          } else if (doc['couchrest-type'] == '#{base}' && doc.start != null && doc.start != ''){
-            emit([doc.clone_id, doc.start], null)
-          }
-        }
-      ", :reduce => "_count"
+      base.map :clone_id
+      base.couch_view :by_clone_id_and_start_time do
+        map CouchCloner::ByCloneIdAndStartTime
+      end
     end
 
     module ClassMethods
-      def last_future_clone_by_clone_id(clone_id)
-        result = by_clone_id_and_start(:startkey => [clone_id, {:end => nil}], :descending => true, :limit => 1).first
-        result && result.clone_id == clone_id ? result : nil
+      def map_by_clone_id_and_start(clone_id, start=nil)
+        map_by_clone_id_and_start_time.startkey!([clone_id, start]).endkey!([clone_id, {:end => nil}])
       end
       
-      def clone_ids(options={})
-        by_clone_id(options.merge(:reduce => true, :group => true))['rows'].collect {|result| result['key']}
+      def count_by_clone_id_and_start(clone_id, start=nil)
+        count_by_clone_id_and_start_time.
+          startkey!([clone_id, start]).
+          endkey!([clone_id, {:end => nil}])
+      end
+
+      def map_active_by_clone_id(clone_id)
+        map_by_clone_id_and_start_time.
+          startkey!([clone_id, Time.now]).
+          endkey!([clone_id]).
+          descending!(true)
+      end
+
+      def map_future_by_clone_id(clone_id)
+        map_by_clone_id_and_start_time.
+          startkey!([clone_id, Time.now]).
+          endkey!([clone_id, {:end => nil}])
       end
       
-      #TODO: is there a way to get a count on a :group :reduce query without returning the actual results?
-      def count_clone_ids(options={})
-        clone_ids(options).count
+      #new
+      def count_future_by_clone_id(clone_id)
+        count_by_clone_id_and_start_time.
+          startkey!([clone_id, Time.now]).
+          endkey!([clone_id, {:end => nil}])
       end
 
-      def active_by_clone_id(clone_id)
-        result = self.by_clone_id_and_start(:startkey => [clone_id, Time.now], :descending => true, :limit => 1).first
-        result && result.clone_id == clone_id ? result : nil
-      end
-      
-      def count_by_clone_id(options={})
-        result = by_clone_id(options.merge(:reduce => true))['rows'].first
-        result ? result['value'] : 0
+      def map_past_by_clone_id(clone_id)
+        map_by_clone_id_and_start_time.
+          startkey!([clone_id, Time.now]).
+          endkey!([clone_id]).
+          descending!(true)
       end
 
-      def count_active_and_future_clones_by_clone_id(clone_id)
-        future_count = count_by_clone_id_and_start(:startkey => [clone_id, Time.now + 1.second])
-        active_count = active_by_clone_id(clone_id) ? 1 : 0
-        active_count + future_count
-      end
-      
-      def count_past_clones_by_clone_id(clone_id)
-        result = by_clone_id_and_start(:startkey => [clone_id, Time.now], :descending => true, :reduce => true)['rows'].first
-        result = result ? (result['value'] - 1) : 0
-        result = 0 if result < 0
-        result
+      def count_past_by_clone_id(clone_id)
+        count_by_clone_id_and_start_time.
+          startkey!([clone_id, Time.now]).
+          endkey!([clone_id]).
+          descending!(true)
       end
 
-      def past_clones_by_clone_id(clone_id)
-        by_clone_id_and_start(:startkey => [clone_id, Time.now], :descending => true)[1..-1]
+      def map_clone_ids
+        map_by_clone_id.
+          reduce!(true).
+          group!(true)
       end
 
-      def active_and_future_clones_by_clone_id(clone_id)
-        [active_by_clone_id(clone_id)] + by_clone_id_and_start(:startkey => [clone_id, Time.now + 1.second])
+      def count_clone_ids!
+        map_by_clone_id.
+          reduce!(true).
+          group!(true).get!['rows'].count
       end
 
-      def by_clone_id_and_start(*args)
-        clone_id, options = parse_clone_id_and_start_arguments *args
-
-        unless options[:key]
-          options[:startkey] ||= [clone_id, nil]
-          if !options[:endkey] 
-            options[:endkey] = [options[:startkey].first, nil]           if     options[:descending]
-            options[:endkey] = [options[:startkey].first, {:end => nil}] unless options[:descending]
-          end
-        end
-
-        by_clone_id_and_start_time options
-      end
-      
-      def count_by_clone_id_and_start(*args)
-        clone_id, options = parse_clone_id_and_start_arguments *args
-
-        result = by_clone_id_and_start(clone_id, options.merge(:reduce => true))['rows'].first
-        result ? result['value'] : 0
-      end
-
-      private
-      def parse_clone_id_and_start_arguments(*args)
-        if args.length == 2
-          clone_id = args.first
-          options  = args.last
-        elsif args.length == 1
-          options = args.first.kind_of?(Hash) ? args.first : {}
-          clone_id = args.first.kind_of?(Hash) ? nil : args.first
-        else
-          raise ArgumentError, "wrong number of arguments"
-        end
-
-        [clone_id, options]
+      def map_last_future_by_clone_id(clone_id)
+        map_by_clone_id_and_start_time.
+          startkey!([clone_id, {:end => nil}]).
+          endkey!([clone_id]).
+          descending!(true).
+          limit!(1)
       end
     end
-
   end
 end

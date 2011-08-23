@@ -1,7 +1,17 @@
-unless defined? QueryModel
-  class QueryModel < CouchRest::Model::Base
-    include CouchCloner
-  end
+Given /^a Query model that includes CouchCloner:$/ do |string|
+  eval string
+end
+
+Given /^.* clones with clone_id .*:$/ do |string|
+  eval string
+end
+
+Then /^.* should (?:be|return) .*:$/ do |string|
+  eval string
+end
+
+Given /^.* Query documents? with clone_id .*:$/ do |string|
+  eval string
 end
 
 Given /^(\d+) QueryModel document clones with clone_id "([^"]*)"$/ do |num, clone_id|
@@ -22,11 +32,6 @@ end
 
 Then /^I should receive (\d+)$/ do |num|
   @result.should == num.to_i
-end
-
-Given /^several QueryModel documents with clone_id "([^"]*)" scheduled in the past and the future$/ do |clone_id|
-  @past = QueryModel.create :clone_id => clone_id, :start => 2.days.ago
-  @future = QueryModel.create :clone_id => clone_id, :start => 2.days.from_now
 end
 
 Given /^several QueryModel documents with clone_id "([^"]*)" without a start time$/ do |clone_id|
