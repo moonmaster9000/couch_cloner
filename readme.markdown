@@ -204,20 +204,20 @@ You can also get a count of all clone_ids:
 
 ## Retreiving the clone created farthest in the future for a clone_id group (.map_last_future_by_clone_id)
 
-If you'd like to retrieve the latest clone within a clone group, you could of course call `future_clones_by_clone_id` and then call `last` on the resulting array - however, that would be quite silly and idiotically inefficiant. So, instead, call `last_future_clone_by_clone_id`:
+If you'd like to retrieve the latest clone within a clone group, you could of course call `future_clones_by_clone_id` and then call `last` on the resulting array - however, that would be quite silly and idiotically inefficiant. So, instead, call `last_future_by_clone_id`:
 
     snippet_1 = HtmlSnippet.create :clone_id => "snippety", :start => Time.now
     snippet_2 = HtmlSnippet.create :clone_id => "snippety", :start => 1000.years.from_now
     
     HtmlSnippet.map_last_future_by_clone_id("snippety").get!.first.should == snippet_2
 
-After creating these two snippet's, calling `HtmlSnippet.last_future_clone_by_clone_id "snippety"` would return `snippet_2`. However, if we create another "snippety" snippet without a `start` date:
+After creating these two snippet's, calling `HtmlSnippet.last_future_by_clone_id "snippety"` would return `snippet_2`. However, if we create another "snippety" snippet without a `start` date:
 
     snippet_3 = HtmlSnippet.create :clone_id => "snippety"
 
     HtmlSnippet.map_last_future_by_clone_id("snippety").get!.first.should == snippet_3
 
-Then calling `HtmlSnippet.last_future_clone_by_clone_id "snippety"` would return `snippet3`. Basically, you can imagine clones with a null start date or an empty string start date to have a start scheduled for `infinity + created_at`; in other words, they sort at the end of the map of clones in a clone_id group, and if there are multiple clones without a start date, then they sort by created at (still at the end of the map). 
+Then calling `HtmlSnippet.last_future_by_clone_id "snippety"` would return `snippet3`. Basically, you can imagine clones with a null start date or an empty string start date to have a start scheduled for `infinity + created_at`; in other words, they sort at the end of the map of clones in a clone_id group, and if there are multiple clones without a start date, then they sort by created at (still at the end of the map). 
 
 
 ## CouchPublish Integration
