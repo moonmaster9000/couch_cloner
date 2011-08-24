@@ -32,7 +32,6 @@ module CouchCloner
           endkey!([clone_id, {:end => nil}])
       end
       
-      #new
       def count_future_by_clone_id(clone_id)
         count_by_clone_id_and_start_time.
           startkey!([clone_id, Time.now]).

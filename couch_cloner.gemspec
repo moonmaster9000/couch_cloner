@@ -1,6 +1,8 @@
 Gem::Specification.new do |s|
   s.name        = "couch_cloner"
   s.version     = File.read "VERSION"
+  s.authors     = "Matt Parker"
+  s.homepage    = "http://github.com/moonmaster9000/couch_cloner"
   s.summary     = "Clone and schedule CouchDB documents"
   s.description = "Create clones of CouchDB documents, and schedule them for publication."
   s.email       = "moonmaster9000@gmail.com"
