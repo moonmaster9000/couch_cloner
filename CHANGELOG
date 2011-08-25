@@ -1,2 +1,5 @@
+v0.1.1
+  -- internal changes to namespace conditions; couch_view dependency on v0.1.1
+
 v0.1.0
   -- includes integration with CouchPublish and CouchVisible
